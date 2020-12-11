@@ -9,8 +9,24 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6">
-                    <form action="/charge" method="post" id="payment-form">
-                        <div class="form-row">
+                    <form action="{{ route('subscribe.post') }}" method="post" id="payment-form"
+                          data-secret="{{ $intent->client_secret }}">
+                        @csrf
+                        <div class="w-1/2 form-row">
+                            <label for="card-holder-name">Cashholder's Name</label>
+                            <div>
+                                <input id="card-holder-name" type="text" class="px-2 py-2 border">
+                            </div>
+                            <div class="mt-4">
+                                <input type="radio" name="plan" id="standard" value="price_1HxJVZJIK8V1V3nkL8AYpWH3"
+                                       checked>
+                                <label for="standard">Standard - $10 / month</label> <br>
+
+                                <input type="radio" name="plan" id="premium" value="price_1HxJVZJIK8V1V3nkUFrOcgAx"
+                                       checked>
+                                <label for="premium">Premium - $20 / month</label>
+                            </div>
+
                             <label for="card-element">
                                 Credit or debit card
                             </label>
@@ -22,7 +38,9 @@
                             <div id="card-errors" role="alert"></div>
                         </div>
 
-                        <button>Submit Payment</button>
+                        <x-jet-button class="mt-4">
+                            Subscribe Now
+                        </x-jet-button>
                     </form>
                 </div>
             </div>
@@ -61,7 +79,7 @@
             // Add an instance of the card Element into the `card-element` <div>.
             card.mount('#card-element');
             // Handle real-time validation errors from the card Element.
-            card.on('change', function(event) {
+            card.on('change', function (event) {
                 var displayError = document.getElementById('card-errors');
                 if (event.error) {
                     displayError.textContent = event.error.message;
@@ -72,29 +90,51 @@
 
             // Handle form submission.
             var form = document.getElementById('payment-form');
-            form.addEventListener('submit', function(event) {
+            var cardHolderName = document.getElementById('card-holder-name');
+            var clientSecret = form.dataset.secret;
+
+            form.addEventListener('submit', async function (event) {
                 event.preventDefault();
 
-                stripe.createToken(card).then(function(result) {
-                    if (result.error) {
-                        // Inform the user if there was an error.
-                        var errorElement = document.getElementById('card-errors');
-                        errorElement.textContent = result.error.message;
-                    } else {
-                        // Send the token to your server.
-                        stripeTokenHandler(result.token);
+                const { setupIntent, error } = await stripe.confirmCardSetup(
+                    clientSecret, {
+                        payment_method: {
+                            card,
+                            billing_details: { name: cardHolderName.value }
+                        }
                     }
-                });
+                );
+
+                if (error) {
+                    // Inform the user if there was an error.
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = error.message;
+                } else {
+                    // Send the token to your server.
+                    // console.log(setupIntent);
+                    stripeTokenHandler(setupIntent);
+                }
+
+                // stripe.createToken(card).then(function (result) {
+                //     if (result.error) {
+                //         // Inform the user if there was an error.
+                //         var errorElement = document.getElementById('card-errors');
+                //         errorElement.textContent = result.error.message;
+                //     } else {
+                //         // Send the token to your server.
+                //         stripeTokenHandler(result.token);
+                //     }
+                // });
             });
 
             // Submit the form with the token ID.
-            function stripeTokenHandler(token) {
+            function stripeTokenHandler(setupIntent) {
                 // Insert the token ID into the form so it gets submitted to the server
                 var form = document.getElementById('payment-form');
                 var hiddenInput = document.createElement('input');
                 hiddenInput.setAttribute('type', 'hidden');
-                hiddenInput.setAttribute('name', 'stripeToken');
-                hiddenInput.setAttribute('value', token.id);
+                hiddenInput.setAttribute('name', 'paymentMethod');
+                hiddenInput.setAttribute('value', setupIntent.payment_method);
                 form.appendChild(hiddenInput);
 
                 // Submit the form
