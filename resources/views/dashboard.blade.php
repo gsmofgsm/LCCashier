@@ -8,6 +8,11 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                @if (session('status'))
+                    <div class="bg-green-200 p-4">
+                        {{ session('status') }}
+                    </div>
+                @endif
                 <x-jet-welcome />
             </div>
         </div>

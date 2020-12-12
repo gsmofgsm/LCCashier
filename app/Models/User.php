@@ -6,12 +6,15 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
+use Laravel\Cashier\Order\Contracts\ProvidesInvoiceInformation;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements ProvidesInvoiceInformation
 {
+    use Billable;
     use HasApiTokens;
     use HasFactory;
     use HasProfilePhoto;
@@ -58,4 +61,25 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    /**
+     * Get the receiver information for the invoice.
+     * Typically includes the name and some sort of (E-mail/physical) address.
+     *
+     * @return array An array of strings
+     */
+    public function getInvoiceInformation()
+    {
+        return [$this->name, $this->email];
+    }
+
+    /**
+     * Get additional information to be displayed on the invoice. Typically a note provided by the customer.
+     *
+     * @return string|null
+     */
+    public function getExtraBillingInformation()
+    {
+        return null;
+    }
 }
