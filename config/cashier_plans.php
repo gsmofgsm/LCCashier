@@ -60,7 +60,7 @@ return [
             /**
              * The length of the billing cycle.
              */
-            'interval' => '1 month',
+            'interval' => '1 minute',
 
             /**
              * The text to appear on the invoice.
@@ -100,7 +100,7 @@ return [
             /**
              * The length of the billing cycle.
              */
-            'interval' => '1 month',
+            'interval' => '1 minute',
 
             /**
              * The text to appear on the invoice.

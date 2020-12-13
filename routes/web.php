@@ -23,12 +23,16 @@ Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
+Route::middleware(['auth:sanctum', 'verified'])->get('/coupon', function () {
+    auth()->user()->redeemCoupon('welcome', 'main', false);
+    return redirect('/dashboard')->with('status', 'Coupon redeemed.');
+})->name('coupon');
+
 Route::middleware(['auth:sanctum', 'verified'])->get('/subscribe', function () {
     return view('subscribe');
 })->name('subscribe');
 
 Route::middleware(['auth:sanctum', 'verified'])->post('/subscribe', function (Request $request) {
-    dd($request->all());
     $user = auth()->user();
     $plan = $request->plan;
 
